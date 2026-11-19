@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>折纸折痕图工作室</title>
+    <script type="module" crossorigin src="/assets/index-CyKTNf4N.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DB0MmS4b.css">
+  </head>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <h1>折纸折痕图工作室</h1>
+        <span class="muted">川崎 / 前川定理实时校验 · 全局平折判定 · 60 帧折叠动画</span>
+        <div class="spacer"></div>
+        <button id="analyzeBtn" class="primary">重新分析</button>
+      </header>
+
+      <aside class="sidebar">
+        <div class="section">
+          <h2>绘制工具</h2>
+          <div class="tool-grid">
+            <button data-tool="select" class="active">选择/移动</button>
+            <button data-tool="mountain">山线</button>
+            <button data-tool="valley">谷线</button>
+            <button data-tool="border">边界</button>
+            <button data-tool="erase">擦除</button>
+            <button id="toggleType">山谷互换</button>
+            <button id="clearBtn">清空画布</button>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>吸附设置</h2>
+          <label class="check"><input type="checkbox" id="gridSnap" checked /> 网格吸附</label>
+          <label class="row">网格间距
+            <input type="number" id="gridSize" value="0.25" step="0.05" min="0.05" />
+          </label>
+          <label class="check"><input type="checkbox" id="angleSnap" checked /> 角度吸附</label>
+          <label class="row">角度步长（度）
+            <input type="number" id="angleStep" value="15" step="5" min="5" max="90" />
+          </label>
+        </div>
+
+        <div class="section">
+          <h2>经典图案生成</h2>
+          <button class="block" data-pattern="miura">三浦折叠 Miura-ori</button>
+          <button class="block" data-pattern="yoshimura">吉野镶嵌 Yoshimura</button>
+          <button class="block" data-pattern="waterbomb">水雷镶嵌 Waterbomb</button>
+          <button class="block" data-pattern="twist">四方扭转 Square Twist</button>
+          <button class="block" data-pattern="waterbombBase">水雷底型</button>
+          <button class="block" data-pattern="craneBase">鹤底型（鸟底）</button>
+          <button class="block" data-pattern="frogBase">蛙底型</button>
+        </div>
+
+        <div class="section">
+          <h2>图例</h2>
+          <div class="legend">
+            <div><span class="swatch mountain"></span>山线（红虚线）</div>
+            <div><span class="swatch valley"></span>谷线（蓝点线）</div>
+            <div><span class="swatch border"></span>纸张边界（黑实线）</div>
+          </div>
+        </div>
+      </aside>
+
+      <main class="canvas-wrap">
+        <canvas id="canvas2d"></canvas>
+        <canvas id="canvas3d" style="display:none"></canvas>
+      </main>
+
+      <aside class="inspector">
+        <div class="section">
+          <h2>视图</h2>
+          <div class="tool-grid">
+            <button data-mode="2d" class="active">2D 折痕图</button>
+            <button data-mode="3d">3D 折叠动画</button>
+          </div>
+          <div id="panel3d" style="display:none; margin-top:12px">
+            <div class="range-row">
+              <button id="playBtn">播放 60 帧</button>
+              <input type="range" id="frameSlider" min="0" max="59" value="0" />
+            </div>
+            <p class="muted" id="frameLabel">第 1 / 60 帧</p>
+          </div>
+          <div id="panel2d"></div>
+        </div>
+
+        <div class="section">
+          <h2>图元统计</h2>
+          <div class="stat"><span>顶点数</span><b id="statVerts">0</b></div>
+          <div class="stat"><span>内部折痕</span><b id="statCreases">0</b></div>
+          <div class="stat"><span>纸面（面）</span><b id="statFaces">—</b></div>
+        </div>
+
+        <div class="section">
+          <h2>定理诊断（川崎 / 前川，0.1°）</h2>
+          <span id="theoremBadge" class="badge warn">尚未分析</span>
+          <div id="errorList" style="margin-top:10px"></div>
+        </div>
+
+        <div class="section">
+          <h2>全局平折判定</h2>
+          <span id="foldBadge" class="badge warn">尚未分析</span>
+          <div id="stuckList" style="margin-top:10px"></div>
+        </div>
+
+        <div class="section">
+          <h2>作品与版本（本地存储）</h2>
+          <label class="row">作品名
+            <input type="text" id="workName" placeholder="未命名作品" />
+          </label>
+          <label class="row">版本备注
+            <input type="text" id="versionNote" placeholder="版本说明" />
+          </label>
+          <button class="block" id="newWork">新建作品</button>
+          <button class="block" id="saveVersion">保存新版本</button>
+          <button class="block" id="renameWork">重命名</button>
+          <button class="block" id="deleteWork">删除作品</button>
+          <div id="workList" style="margin-top:8px"></div>
+        </div>
+
+        <div class="section">
+          <h2>导入 / 导出</h2>
+          <button class="block" id="exportSvg">导出折痕图 SVG</button>
+          <button class="block" id="exportLayerSvg">导出层序图 SVG</button>
+          <button class="block" id="exportSteps">导出折法步骤图（一步一张）</button>
+          <button class="block" id="exportJson">导出作品 JSON</button>
+          <button class="block" id="importJson">导入作品 JSON</button>
+          <input type="file" id="importFile" accept=".json,application/json" style="display:none" />
+        </div>
+      </aside>
+    </div>
+    <div class="toast" id="toast"></div>
+  </body>
+</html>
